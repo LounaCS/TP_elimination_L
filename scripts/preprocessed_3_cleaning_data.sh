@@ -1,4 +1,4 @@
-cd ~/mydatalocal/TP_elimination_L/2_processed_data
+cd ~/mydatalocal/TP_elimination_L/2_preprocessed_data
 
 mkdir -p intermediary_results/trim_data/
 mkdir -p intermediary_results/report_trimming/
