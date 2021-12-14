@@ -4,12 +4,12 @@ cp -r 1_raw_data/data/Projet_62_21/Fastq\ files/ 2_preprocessed_data/Fastq
 
 # Move data to supress space from the directory name
 
-cd data
-mv "Projet_62_21/Fastq files/" fastq_files/
+cd 2_preprocessed_data/Fastq
+mv Fastq\ files/ fastq_files/
 
 # Rename files with more understandable names
 
-cd data/fastq_files
+cd fastq_files
 mv Lib1_62_21_S1_R1_001.fastq.gz   1cell_rep1.fastq.gz 
 mv Lib2_62_21_S2_R1_001.fastq.gz   1cell_rep2.fastq.gz  
 mv Lib3_62_21_S3_R1_001.fastq.gz   2cells_rep1.fastq.gz 
