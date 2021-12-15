@@ -17,9 +17,11 @@ do
   echo $OUT_REPORTS_PREFIX
   
   mkdir -p "~/mydatalocal/TP_elimination_L/3_processed_data/quantification/${TRIM_FASTQ_GZ_PREFIX}/"
+  echo hello
+
   kallisto quant -i ${INDEX} -t 7 \
                  --single -l ${LEN} -s ${SD} \
                  --bias \
                  -o ${OUT_QUANT_PREFIX} \
-                 ${TRIM_FASTQ_GZ_FILE} &> ${OUT_QUANT_PREFIX}_kallisto_mapping_report.txt
+                 ${TRIM_FASTQ_GZ_FILE}
 done
