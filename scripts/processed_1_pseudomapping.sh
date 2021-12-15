@@ -12,14 +12,14 @@ do
   echo $TRIM_FASTQ_GZ_NAME
   echo $TRIM_FASTQ_GZ_PREFIX
   
-  OUT_QUANT_PREFIX="~/mydatalocal/TP_elimination_L/3_processed_data/quantification/${TRIM_FASTQ_GZ_PREFIX}"
+  OUT_QUANT_PREFIX="/home/rstudio/mydatalocal/TP_elimination_L/3_processed_data/quantification/${TRIM_FASTQ_GZ_PREFIX}"
   echo $OUT_QUANT_PREFIX
   echo $OUT_REPORTS_PREFIX
   
-  mkdir -p "~/mydatalocal/TP_elimination_L/3_processed_data/quantification/${TRIM_FASTQ_GZ_PREFIX}/"
+  mkdir -p "/home/rstudio/mydatalocal/TP_elimination_L/3_processed_data/quantification/${TRIM_FASTQ_GZ_PREFIX}/"
   echo hello
 
-  kallisto quant -i ${INDEX} -t 7 \
+  echo kallisto quant -i ${INDEX} -t 7 \
                  --single -l ${LEN} -s ${SD} \
                  --bias \
                  -o ${OUT_QUANT_PREFIX} \
