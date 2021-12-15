@@ -26,3 +26,12 @@ mapping of the reads on the reference genome.
 identification of upregulated genes
 
 significativité: on a regardé les gènes qui étaient le plus up ou downrégulés en différence d'expression, maintenant on regarde les gènes dont le profil d'expression est le plus reproduit/le mieux partagé parmi les cellules
+
+
+
+# Further questions
+- what downregutated genes?
+- quality of the samples (verify with known developmental-phase-specific genes)
+- est-ce que exc@slors de l'élimination de gènes upregulés
+- comparison between consecutive phases: more linear in up/downregulated?
+- does the mean fragment length (given as parameter for kallisto for the pseudomapping) impact the results?
