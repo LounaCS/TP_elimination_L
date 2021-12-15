@@ -1,4 +1,4 @@
-mkdir -p ~/mydatalocal/TP_elimination_L/3_processed_data/quantification/
+mkdir -p /mydatalocal/TP_elimination_L/3_processed_data/quantification/
 
 INDEX=~/mydatalocal/TP_elimination_L/2_preprocessed_data/intermediary_results/quantification/index_belari/mesorhabditis_belari.index
 LEN=522 # fragment length
