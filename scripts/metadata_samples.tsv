@@ -1,0 +1,13 @@
+sample_ID sample_name age timing elimination
+1cell_rep1 1c_2 1c before no
+1cell_rep2 1c_3 1c before no
+2cells_rep1 2c_2 2c before no
+2cells_rep2 2c_3 2c before no
+4cells_rep1 4c_1 4c during yes
+4cells_rep2 4c_3 4c during yes
+8cells_rep1 8c_1 8c during yes
+8cells_rep2 8c_2 8c during yes
+8cells5h_rep1 8c+5_2 8c_5 during no
+8cells5h_rep2 8c+5_3 8c_5 during no
+8cells7h_rep1 8c+7_1 8c_7 during no
+8cells7h_rep2 8c+7_4 8c_7 during no
