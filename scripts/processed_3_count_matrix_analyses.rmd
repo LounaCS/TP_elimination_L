@@ -112,3 +112,8 @@ To identify them:
 plotCounts(dds, gene="mbelari.g8166", intgroup = "age")
 ```
 
+Plutot genes exprimés après coup. 
+
+genes downrégulés significativement plutot exprimés dans stades tardifs, donc pas très intéressants non plus.
+
+Il va falloir voir dans le milieu du triangle…
