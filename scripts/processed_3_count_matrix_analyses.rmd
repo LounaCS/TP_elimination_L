@@ -10,7 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Import the data with tximport
-## build metadata
+
+## build metadata (link between biological annotations and analyses annotations)
 
 
 ```{r}
@@ -21,7 +22,7 @@ rownames(sampleTable) = sampleTable$sample_ID
 sampleTable
 ```
 
-# data import using tximport
+##  create the count table with all samples using tximport
 
 ```{r}
 library(tximport)
@@ -45,10 +46,13 @@ tx2gene <- data.frame(tx=transcript_names,
 txi.kallisto <- tximport(files, type = "kallisto", tx2gene = tx2gene)
 ```
 
-# Differential expression analyses
+
+
+
+
+# Differential expression analyses using DESeq2
+
 ## build the DESeq2 object
-
-
 
 ```{r}
 library(DESeq2)
@@ -61,50 +65,32 @@ dds <- DESeq(dds)
 #DESeq compares statistically genetic expression under different hypothetic factors. also normalize the count matrix.
 vsd <- vst(dds, blind=FALSE)
 ```
- 
- replicats proches sur la PCA: bien!
- courbe de temps: PC1 suivant le temps.
- 
-# ACP display
+
+## ACP of gene differential expression
 ```{r}
 plotPCA(vsd, intgroup=c("age"))
 ```
- 
+ replicats proches sur la PCA: bien!
+ courbe de temps: PC1 suivant le temps.
+
+
+## Results:
+matrix with p-value, Log2…, 
+
 ```{r}
 res = results(dds)
-```
 
-## Plot orientation
-```{r}
-resultsNames(dds)
-```
-Up on the plot: 
-
-```{r}
-plotMA(res, ylim=c(-30,30))
-```
- We want to identify the significatively upregulated genes.
- 
- 
- ## Manipulation of res
- 
- We can't identify all upregulated genes, so first focuss on the most upregulated genes.
-```{r}
 res_df <- as.data.frame(res)
 head(res_df)
 ```
- 
-```{r}
-subset(res_df, log2FoldChange > 20 & baseMean > 10 & padj < 0.05)
-```
 
+nombre of significantly up/downregulated genes
 ```{r}
 summary(res)
 ```
-
 We obtain 1163 gene upregulated.
 
-To identify them:
+To identify them, we can:
  - plot their expression profile
  - identify their category
 
@@ -117,3 +103,151 @@ Plutot genes exprimés après coup.
 genes downrégulés significativement plutot exprimés dans stades tardifs, donc pas très intéressants non plus.
 
 Il va falloir voir dans le milieu du triangle…
+
+
+### Plot orientation
+```{r}
+resultsNames(dds)
+```
+### Plot of the down/upregulated genes
+
+```{r}
+plotMA(res, ylim=c(-30,30))
+```
+ 
+ 
+ 
+# Selection of genes of interest for the biological question
+ We can't identify all upregulated genes, so we focuss on:
+ - the most upregulated genes
+ - 
+
+## Useful functions
+### Get annotation data from wormbase parasite
+
+Those annotations come from the C. elegans database. All belari genes are not annotated.
+biomaRt: get data from parasite website
+
+```{r}
+# get annotations from database
+
+# BiocManager::install("biomaRt") # only one time
+
+library(biomaRt)
+mart <- useMart("parasite_mart", dataset = "wbps_gene", host = "https://parasite.wormbase.org", port = 443)
+
+genes_annotation <- getBM(mart = mart,
+                          filters = c("species_id_1010"),
+                          value = list("mebelaprjeb30104"),
+                          attributes = c("wbps_gene_id",
+                                         "caelegprjna13758_gene_name",
+                                         "caelegprjna13758_homolog_ensembl_peptide",
+                                         "interpro_id", #conserved domains across proteins
+                                         "interpro_short_description")
+)
+
+
+```
+
+### Creating graphs
+
+prends le tableau de résultats (res_df) qui donne baseMean, log2… et p value.
+subset applique des filtres par colones. 
+affichage des gènes d'intéret
+```{r}
+
+# function to create graphs
+plot_counts <- function(X) {
+count_df <- counts(dds, normalized=T)
+count_dfl = count_df %>% as.data.frame() %>%  rownames_to_column("gene_ID") %>% pivot_longer(-gene_ID,names_to = "sample_ID", values_to = "norm_counts")
+
+
+df_tmp = subset(count_dfl, gene_ID %in% X) %>% left_join(sampleTable)
+
+df_tmp <- df_tmp %>% mutate(age = factor(age, levels = unique(age)),
+                            gene_ID = factor(gene_ID,levels=X))
+
+
+ggplot(df_tmp, aes(x=age, y = norm_counts, col = age)) + theme_bw() +
+  geom_point() +
+  facet_wrap(~gene_ID, scales = "free_y" ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+}
+```
+
+# Analysis: Gene identification
+## First question_Selection of genes highly up/downregulated during the genome elimination phase
+
+Biological question: What are the most upregulated genes during genome elimination?
+
+adjust parameter log2FoldChange (strength:20)
+ 
+```{r}
+upregulated = subset(res_df, log2FoldChange > 4 & baseMean > 10 & padj < 0.05) #noms de genes dans les noms de ligne: transférer dans une colone pour lecture facile
+downregulated = subset(res_df, log2FoldChange < -7 & baseMean > 10 & padj < 0.05)
+```
+
+```{r}
+summary(upregulated)
+```
+
+### creating graphs
+```{r}
+upregulated$gene_ID
+
+plot_counts(upregulated$gene_ID)
+```
+We see that upregulated genes are mainly upregulated during the late phase of development. It is thus not really interesting for us.
+
+```{r}
+downregulated$gene_ID_down
+plot_counts(downregulated$gene_ID)
+```
+We see that downregulated genes are ???
+
+## Second question: among genes that are robustly regulated among cells in the samples, i.e. with the higher p-value.
+
+we sort genes whose regulation is significant by p-value
+de: differential expression
+```{r}
+# adjusted parameters: log2FoldChange=y-axis, baseMean=x-axis,n padj=p-adjusted value, 
+
+res_df  <- res %>% as.data.frame() %>% rownames_to_column("gene_ID")
+genes_list <- subset(res_df, log2FoldChange < -5 & padj <0.05) %>% arrange(padj) %>% head(20)
+plot_counts(genes_list$gene_ID)
+robust <- subset(genes_annotation, wbps_gene_id %in% genes_list$gene_ID) # we select annotations for genes of interest from the total annotation table
+
+head(robust)
+```
+
+
+```{r}
+genes_annotation[10:20,]
+```
+
+
+
+
+```{r}
+
+
+```
+
+## Third question: are there helicases in the filtered genes?
+
+selection by keywords with grep
+```{r}
+filtered_gene = upregulated # OR robust OR downregulated
+head(filtered_gene)
+
+toMatch = c("exonuclease", "transposase", "helicase")
+exotranspoheli = filtered_gene[grep(paste(toMatch,collapse="|"),
+                                              filtered_gene$interpro_short_description, ignore.case = T),]
+exotranspoheli
+
+plot_counts(unique(exotranspoheli$wbps_gene_id))
+```
+
+
+Helicases dans la liste des gènes uprégulés ?
+Gènes potentiels candidats, à tester pour l'élimination.
