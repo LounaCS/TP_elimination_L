@@ -50,7 +50,7 @@ txi.kallisto <- tximport(files, type = "kallisto", tx2gene = tx2gene)
 
 
 
-# Differential expression analyses using DESeq2
+# Differential expression (DE) analyses using DESeq2
 
 ## build the DESeq2 object
 
@@ -70,12 +70,13 @@ vsd <- vst(dds, blind=FALSE)
 ```{r}
 plotPCA(vsd, intgroup=c("age"))
 ```
- replicats proches sur la PCA: bien!
- courbe de temps: PC1 suivant le temps.
+ The first principal component (PC) seems to differenciate samples according to the corresponding developmental stade. It shows that the higher data dispersion is due to developmental processes, which is expected.
+ Replicates are aggregated on the PCA, which highlight the similitudes between samples of the same age.
+ The second principal component seems to discriminate samples according to the genome elimination event: samples from before and after the genome elimination have low PC2 values, while samples from the stades 4- and 8-cells have higher PC2 values. That segregation indicates a differencial expression linked to the genome elimination event.
 
 
-## Results:
-matrix with p-value, Log2…, 
+## Count matrix
+The count matrix is a large matrix with p-value (the robustness of differencial expression between 'during' elimination and 'not during', meaning before and after genome elimination) and Log2FoldChange (the intensity of differencial expression between the two conditions).
 
 ```{r}
 res = results(dds)
@@ -84,7 +85,7 @@ res_df <- as.data.frame(res)
 head(res_df)
 ```
 
-nombre of significantly up/downregulated genes
+What is the number of significantly up/downregulated genes?
 ```{r}
 summary(res)
 ```
@@ -97,12 +98,11 @@ To identify them, we can:
 ```{r}
 plotCounts(dds, gene="mbelari.g8166", intgroup = "age")
 ```
+According to their expression profile, upregulated genes are mainly highly expressed after the genome elimination.
+Significatively downregulated genes are rather expressed in late stades.
+Those patterns reflects developmental processes, thus are of little interest for us.
 
-Plutot genes exprimés après coup. 
-
-genes downrégulés significativement plutot exprimés dans stades tardifs, donc pas très intéressants non plus.
-
-Il va falloir voir dans le milieu du triangle…
+We can adjust the threshold of significance to study genes with lower p-value of differential expression.
 
 
 ### Plot orientation
@@ -118,15 +118,13 @@ plotMA(res, ylim=c(-30,30))
  
  
 # Selection of genes of interest for the biological question
- We can't identify all upregulated genes, so we focuss on:
- - the most upregulated genes
- - 
+ We can't identify all upregulated genes, so we focuss on the most upregulated genes.
 
 ## Useful functions
 ### Get annotation data from wormbase parasite
 
-Those annotations come from the C. elegans database. All belari genes are not annotated.
-biomaRt: get data from parasite website
+Those annotations come from the C. elegans database. All belari genes are not annotated as this species is not a model one.
+The biomaRt library allows us to get data from the Wormbase ParaSite website.
 
 ```{r}
 # get annotations from database
@@ -151,14 +149,14 @@ genes_annotation <- getBM(mart = mart,
 
 ### Creating graphs
 
-prends le tableau de résultats (res_df) qui donne baseMean, log2… et p value.
-subset applique des filtres par colones. 
-affichage des gènes d'intéret
+The subset method applies filters on columns.
+To create the graphs of expression patterns for various genes of interest, we can use this function:
+
 ```{r}
 
 # function to create graphs
 plot_counts <- function(X) {
-count_df <- counts(dds, normalized=T)
+count_df <- counts(dds, normalized=T) #dds: count matrix
 count_dfl = count_df %>% as.data.frame() %>%  rownames_to_column("gene_ID") %>% pivot_longer(-gene_ID,names_to = "sample_ID", values_to = "norm_counts")
 
 
@@ -178,9 +176,9 @@ ggplot(df_tmp, aes(x=age, y = norm_counts, col = age)) + theme_bw() +
 # Analysis: Gene identification
 ## First question_Selection of genes highly up/downregulated during the genome elimination phase
 
-Biological question: What are the most upregulated genes during genome elimination?
+Here, we wonder **what genes are the most upregulated genes during genome elimination?**
 
-adjust parameter log2FoldChange (strength:20)
+We can adjust the number of significantly upregulated genes with the parameter log2FoldChange (maximum strength:20).
  
 ```{r}
 upregulated = subset(res_df, log2FoldChange > 4 & baseMean > 10 & padj < 0.05) #noms de genes dans les noms de ligne: transférer dans une colone pour lecture facile
@@ -203,12 +201,16 @@ We see that upregulated genes are mainly upregulated during the late phase of de
 downregulated$gene_ID_down
 plot_counts(downregulated$gene_ID)
 ```
-We see that downregulated genes are ???
+We see that downregulated genes exhibit various patterns, that may be due to the consumption of maternal RNA before the transcription activation.
 
-## Second question: among genes that are robustly regulated among cells in the samples, i.e. with the higher p-value.
+## Second question: robustly regulated genes among cells in the samples, i.e. with the higher p-value.
 
-we sort genes whose regulation is significant by p-value
-de: differential expression
+We here wonder **what function display genes that are most robustly regulated?**
+
+
+To do so, we first sort genes whose regulation is significant by decroissant p-value, then look at their functions.
+(de: differential expression)
+
 ```{r}
 # adjusted parameters: log2FoldChange=y-axis, baseMean=x-axis,n padj=p-adjusted value, 
 
@@ -225,17 +227,10 @@ head(robust)
 genes_annotation[10:20,]
 ```
 
+## Third question: are there genes with interesting functions in the filtered genes?
 
+We can mine our dataset of filtered genes by keywords with the grep method, looking for proteic functions of interest: exonuclease, transposase, or helicase.
 
-
-```{r}
-
-
-```
-
-## Third question: are there helicases in the filtered genes?
-
-selection by keywords with grep
 ```{r}
 filtered_gene = upregulated # OR robust OR downregulated
 head(filtered_gene)
@@ -248,6 +243,4 @@ exotranspoheli
 plot_counts(unique(exotranspoheli$wbps_gene_id))
 ```
 
-
-Helicases dans la liste des gènes uprégulés ?
-Gènes potentiels candidats, à tester pour l'élimination.
+We can also look for helicases.
