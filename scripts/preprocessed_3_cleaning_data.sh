@@ -1,8 +1,10 @@
 cd ~/mydatalocal/TP_elimination_L/2_preprocessed_data
 
+# creation of output directories
 mkdir -p intermediary_results/trim_data/
 mkdir -p intermediary_results/report_trimming/
 
+# filter reads according to their quality phred and cut the tail after 82 bp
 for FASTQ_GZ_FILES in Fastq/*gz
 do
   FASTQ_GZ_NAME=$(basename $FASTQ_GZ_FILES)
