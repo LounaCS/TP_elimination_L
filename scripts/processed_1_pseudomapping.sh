@@ -17,7 +17,6 @@ do
   echo $OUT_REPORTS_PREFIX
   
   mkdir -p "/home/rstudio/mydatalocal/TP_elimination_L/3_processed_data/quantification/${TRIM_FASTQ_GZ_PREFIX}/"
-  echo hello
 
   echo kallisto quant -i ${INDEX} -t 7 \
                  --single -l ${LEN} -s ${SD} \
