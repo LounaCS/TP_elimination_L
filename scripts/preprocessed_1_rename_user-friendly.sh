@@ -1,4 +1,4 @@
-# Copy data from 1_raw_data
+# Copy raw data from the raw data directory to the preprocessing directory for further use.
 cd ~/mydatalocal/TP_elimination_L
 cp -r 1_raw_data/data/Projet_62_21/Fastq\ files/ 2_preprocessed_data/Fastq
 
